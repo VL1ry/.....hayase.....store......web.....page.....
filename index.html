@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .container {
+            text-align: center;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid white;
+        }
+        select, button, input {
+            padding: 10px;
+            margin: 10px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: 1px solid white;
+        }
+        button {
+            cursor: pointer;
+            background-color: white;
+            color: black;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <div class="container">
+        <select id="product-select">
+            <option value="Nitro - 500円">Nitro - 500円</option>
+            <option value="NitroBasic - 200円">NitroBasic - 200円</option>
+            <option value="Boostx14 - 1200円">Boostx14 - 1200円</option>
+            <option value="Hulu - 400円">Hulu - 400円</option>
+            <option value="Spotify - 400円">Spotify - 400円</option>
+            <option value="Netflix - 200円">Netflix - 200円</option>
+            <option value="U-Next - 400円">U-Next - 400円</option>
+            <option value="eSIM - 300円">eSIM - 300円</option>
+        </select><br>
+        <input type="text" id="paypay-url" placeholder="PayPay">
+        <button id="purchase-button">購入</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('stars');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const stars = [];
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5,
+            });
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            for (let star of stars) {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+                star.x += star.speedX;
+                star.y += star.speedY;
+
+                if (star.x < 0 || star.x > canvas.width) star.speedX *= -1;
+                if (star.y < 0 || star.y > canvas.height) star.speedY *= -1;
+            }
+            requestAnimationFrame(drawStars);
+        }
+
+        drawStars();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        document.getElementById('purchase-button').addEventListener('click', async () => {
+            const product = document.getElementById('product-select').value;
+            const paypayUrl = document.getElementById('paypay-url').value;
+            const messageDiv = document.getElementById('message');
+            const purchaseId = Math.floor(100000 + Math.random() * 900000);
+            
+            messageDiv.textContent = '処理をしています...';
+
+            const webhookUrl = 'https://discord.com/api/webhooks/1255144434828578891/lXznLf0A7P1HL4au0svZO6NxZXq8XKbErMjBG3UTtyokvHOwSHEu2C1vKUPg2J1Y3VFE';
+
+            const data = {
+                content: `購入情報:
+            商品: ${product}
+            PayPay URL: ${paypayUrl}
+            購入ID: ${purchaseId}`
+            };
+
+            try {
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                messageDiv.textContent = `購入ID: ${purchaseId}`;
+            } catch (error) {
+                messageDiv.textContent = 'エラーが発生しました。もう一度お試しください。';
+            }
+        });
+    </script>
+</body>
+</html>
